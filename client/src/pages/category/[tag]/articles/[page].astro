@@ -1,0 +1,69 @@
+---
+import type { GetStaticPathsOptions, Page } from "astro";
+import type {
+  ApiArticleArticle,
+  ApiCategoryCategory,
+} from "../../../../../types/contentTypes";
+import Container from "../../../../components/Container.astro";
+import Layout from "../../../../layouts/Layout.astro";
+import { baseApi } from "../../../../logic/BaseApi";
+import Pagination from "../../../../components/Pagination.astro";
+import ArticlesList from "../../../../components/ArticlesList.astro";
+
+interface Props {
+  page: Page<ApiArticleArticle>;
+  category: ApiCategoryCategory;
+}
+
+export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
+  const categories = await baseApi<Array<ApiCategoryCategory>>(
+    "categories",
+    {}
+  );
+
+  const allArticles = await baseApi<Array<ApiArticleArticle>>("articles", {
+    "populate[0]": "categories",
+    "populate[1]": "cover_image",
+  });
+
+  return categories.flatMap(category => {
+    const articles = allArticles.filter(({ attributes }) => {
+      const articleCategories: Array<ApiCategoryCategory> =
+        attributes.categories.data;
+
+      return articleCategories.some(
+        t => t.attributes.name === category.attributes.name
+      );
+    });
+
+    return paginate(articles, {
+      params: { tag: category.attributes.slug },
+      props: {
+        category,
+      },
+      pageSize: 1,
+    });
+  });
+}
+
+const { page, category } = Astro.props;
+const { tag } = Astro.params;
+---
+
+<Layout title=`Articles from category ${tag}`>
+  <Container>
+    <h1 class="mt-10 text-2xl">
+      Articles <span class="capitalize text-teal-600"
+        >{category.attributes.name}</span
+      >
+    </h1>
+
+    <ArticlesList data={page.data} />
+
+    <Pagination
+      total={page.total}
+      pattern={`/category/${tag}/articles/{}`}
+      currentPage={page.currentPage}
+    />
+  </Container>
+</Layout>

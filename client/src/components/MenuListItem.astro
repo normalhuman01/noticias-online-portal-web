@@ -1,0 +1,17 @@
+---
+import urlPattern from "../helpers/urlPattern";
+
+interface Props {
+  title: string;
+  slug: string;
+}
+
+const { title, slug } = Astro.props;
+---
+
+<a
+  class="text-lg capitalize hover:text-teal-500"
+  href={urlPattern("/category/{}/articles/1", slug)}
+>
+  {title}
+</a>

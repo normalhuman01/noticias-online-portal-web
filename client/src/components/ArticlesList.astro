@@ -1,0 +1,20 @@
+---
+import type { ApiArticleArticle } from "../../types/contentTypes";
+import ArticleCard from "./ArticleCard.astro";
+
+interface Props {
+  data: Array<ApiArticleArticle>;
+}
+
+const { data } = Astro.props;
+---
+
+<ul class="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+  {
+    data.map(({ attributes }) => (
+      <li class="w-full">
+        <ArticleCard article={attributes} />
+      </li>
+    ))
+  }
+</ul>
